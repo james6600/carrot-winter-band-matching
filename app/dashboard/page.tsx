@@ -3,17 +3,34 @@ import { GENRES, PARTS } from "../../lib/constants";
 
 export const dynamic = "force-dynamic";
 
+type CountRow = { key: string; n: number | string };
+
 export default async function Dashboard({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const total = (await pool.query(`SELECT count(*)::int n FROM ${q("participants")} WHERE completed=true AND merged_into IS NULL`)).rows[0]?.n ?? 0;
-  const pr = await pool.query(`SELECT part_key,count(*)::int n FROM ${q("participant_parts")} pp JOIN ${q("participants")} p ON p.id=pp.participant_id WHERE p.completed=true AND p.merged_into IS NULL GROUP BY part_key ORDER BY n DESC`);
-  const partRows = pr.rows as Array<{ part_key: string; n: number | string }>;
-  const gr = await pool.query(`SELECT genre_key,count(*)::int n FROM ${q("participant_genres")} pg JOIN ${q("participants")} p ON p.id=pg.participant_id WHERE p.completed=true AND p.merged_into IS NULL GROUP BY genre_key ORDER BY n DESC`);
-  const genreRows = gr.rows as Array<{ genre_key: string; n: number | string }>;
-  const pm = new Map<string, string>(PARTS as readonly (readonly [string,string])[]);
-  const gm = new Map<string, string>(GENRES as readonly (readonly [string,string])[]);
-  const maxPart = Math.max(1, ...partRows.map((r: { part_key: string; n: number | string }) => Number(r.n)));
-  const maxGenre = Math.max(1, ...genreRows.map((r: { genre_key: string; n: number | string }) => Number(r.n)));
+
+  const partRows = (await pool.query(
+    `SELECT part_key AS key, count(*)::int AS n
+     FROM ${q("participants")} p
+     CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(p.parts_json, '[]'::jsonb)) AS part_key
+     WHERE p.completed=true AND p.merged_into IS NULL
+     GROUP BY part_key
+     ORDER BY n DESC`,
+  )).rows as CountRow[];
+
+  const genreRows = (await pool.query(
+    `SELECT genre_key AS key, count(*)::int AS n
+     FROM ${q("participants")} p
+     CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(p.genres_json, '[]'::jsonb)) AS genre_key
+     WHERE p.completed=true AND p.merged_into IS NULL
+     GROUP BY genre_key
+     ORDER BY n DESC`,
+  )).rows as CountRow[];
+
+  const pm = new Map<string, string>(PARTS as readonly (readonly [string, string])[]);
+  const gm = new Map<string, string>(GENRES as readonly (readonly [string, string])[]);
+  const maxPart = Math.max(1, ...partRows.map((r) => Number(r.n)));
+  const maxGenre = Math.max(1, ...genreRows.map((r) => Number(r.n)));
 
   return (
     <main className="content-page dashboard-page">
@@ -33,13 +50,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="magic-card chart-card">
           <div className="card-head"><div><small>PARTS</small><h2>어떤 파트가 모였나요?</h2></div><span>🎸</span></div>
           <div className="bar-list">
-            {partRows.length ? partRows.map((r: { part_key: string; n: number | string }) => <div className="bar-row" key={r.part_key}><div className="bar-label"><b>{pm.get(r.part_key) ?? r.part_key}</b><span>{r.n}명</span></div><div className="bar-track"><i style={{width:`${Math.max(8, Number(r.n)/maxPart*100)}%`}}/></div></div>) : <Empty label="아직 파트 데이터가 없어요."/>}
+            {partRows.length ? partRows.map((r) => <div className="bar-row" key={r.key}><div className="bar-label"><b>{pm.get(r.key) ?? r.key}</b><span>{r.n}명</span></div><div className="bar-track"><i style={{width:`${Math.max(8, Number(r.n)/maxPart*100)}%`}}/></div></div>) : <Empty label="아직 파트 데이터가 없어요."/>}
           </div>
         </section>
         <section className="magic-card chart-card">
           <div className="card-head"><div><small>GENRES</small><h2>우리의 플레이리스트</h2></div><span>🎧</span></div>
           <div className="bar-list">
-            {genreRows.length ? genreRows.slice(0,10).map((r: { genre_key: string; n: number | string }) => <div className="bar-row" key={r.genre_key}><div className="bar-label"><b>{gm.get(r.genre_key) ?? r.genre_key}</b><span>{r.n}명</span></div><div className="bar-track wine"><i style={{width:`${Math.max(8, Number(r.n)/maxGenre*100)}%`}}/></div></div>) : <Empty label="아직 장르 데이터가 없어요."/>}
+            {genreRows.length ? genreRows.slice(0,10).map((r) => <div className="bar-row" key={r.key}><div className="bar-label"><b>{gm.get(r.key) ?? r.key}</b><span>{r.n}명</span></div><div className="bar-track wine"><i style={{width:`${Math.max(8, Number(r.n)/maxGenre*100)}%`}}/></div></div>) : <Empty label="아직 장르 데이터가 없어요."/>}
           </div>
         </section>
       </div>

@@ -15,12 +15,13 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
   let selectedGenres: string[] = [];
 
   if (me) {
-    const [p, g] = await Promise.all([
-      pool.query(`SELECT part_key FROM ${q("participant_parts")} WHERE participant_id=$1`, [me.id]),
-      pool.query(`SELECT genre_key FROM ${q("participant_genres")} WHERE participant_id=$1`, [me.id]),
-    ]);
-    selectedParts = (p.rows as Array<{ part_key: string }>).map((x: { part_key: string }) => x.part_key);
-    selectedGenres = (g.rows as Array<{ genre_key: string }>).map((x: { genre_key: string }) => x.genre_key);
+    const profile = await pool.query(
+      `SELECT parts_json, genres_json FROM ${q("participants")} WHERE id=$1`,
+      [me.id],
+    );
+    const row = profile.rows[0] as { parts_json?: unknown; genres_json?: unknown } | undefined;
+    selectedParts = Array.isArray(row?.parts_json) ? row.parts_json.map(String) : [];
+    selectedGenres = Array.isArray(row?.genres_json) ? row.genres_json.map(String) : [];
   }
 
   const error = params.error;
@@ -41,7 +42,8 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
             <p className="muted">처음 사용하는 닉네임이면 바로 만들어지고, 다음부터 같은 비밀번호로 다시 들어올 수 있어요.</p>
             {error === "password" && <div className="notice error">비밀번호가 맞지 않아요. 같은 닉네임의 기존 참가자가 있습니다.</div>}
             {error === "input" && <div className="notice error">닉네임은 2자 이상, 비밀번호는 8자 이상 입력해 주세요.</div>}
-            {error === "db" && <div className="notice error">데이터베이스 연결을 확인해 주세요. Vercel의 DATABASE_URL과 Supabase 스키마 적용 상태를 점검해야 합니다.</div>}
+            {error === "db" && <div className="notice error">데이터 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>}
+            {error === "login-server" && <div className="notice error">로그인 처리 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>}
             {error === "session" && <div className="notice error">로그인 세션을 확인하지 못했어요. 다시 로그인해 주세요.</div>}
             <form action="/api/auth/login" method="post" className="form-stack">
               <label className="input-field"><span>닉네임</span><input name="nickname" autoComplete="username" placeholder="예: 페퍼민트" required minLength={2}/></label>

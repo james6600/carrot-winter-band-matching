@@ -6,31 +6,36 @@ const partLinks = [
 export default function Home() {
   return (
     <main className="home-page">
-      <section className="hero-copy">
-        <div className="season-badge"><span>✦</span> YEAR-END BAND MATCHING</div>
-        <p className="kicker">이번 겨울, 같이 연주할 사람을 찾아요.</p>
-        <h1>취향이 맞는 우리,<br/><em>함께 밴드 해요.</em></h1>
-        <p className="hero-lead">
-          연주할 파트와 좋아하는 음악을 고르면<br className="desktop-only"/>
-          비슷한 취향의 밴드원을 찾아드려요.
-        </p>
-        <div className="hero-actions">
-          <a className="button primary" href="/onboarding"><span>✦</span> 나의 밴드 취향 찾기</a>
-          <a className="button ghost" href="/dashboard">먼저 둘러보기 <span>→</span></a>
+      <section className="hero-layout">
+        <div className="hero-copy">
+          <div className="season-badge"><span>✦</span> YEAR-END BAND MATCHING</div>
+          <p className="kicker">이번 겨울, 같이 연주할 사람을 찾아요.</p>
+          <h1>
+            <span className="hero-title-line">취향이 맞는 우리,</span>
+            <span className="hero-title-line hero-title-accent">함께 밴드 해요.</span>
+          </h1>
+          <p className="hero-lead">
+            연주할 파트와 좋아하는 음악을 고르면<br className="desktop-only"/>
+            비슷한 취향의 밴드원을 찾아드려요.
+          </p>
+          <div className="hero-actions">
+            <a className="button primary" href="/onboarding"><span>✦</span> 나의 밴드 취향 찾기</a>
+            <a className="button ghost" href="/dashboard">먼저 둘러보기 <span>→</span></a>
+          </div>
+          <div className="part-quicklinks" aria-label="파트별 밴드원 찾기">
+            {partLinks.map(([icon, name]) => (
+              <a key={name} href="/dashboard" className="part-mini"><span>{icon}</span>{name}</a>
+            ))}
+          </div>
         </div>
-        <div className="part-quicklinks" aria-label="파트별 밴드원 찾기">
-          {partLinks.map(([icon, name]) => (
-            <a key={name} href="/dashboard" className="part-mini"><span>{icon}</span>{name}</a>
-          ))}
-        </div>
-      </section>
 
-      <section className="hero-stage" aria-label="당근 밴드 무대">
-        <div className="garland" aria-hidden="true">✦ · ✦ · ✦ · ✦ · ✦ · ✦</div>
-        <img src="/assets/carrot-band-stage.png" alt="기타, 드럼, 키보드로 합주하는 당근 밴드" />
-        <div className="stage-caption">
-          <span className="live-dot"/> WINTER SESSION
-          <b>나랑 맞는 밴드원을 찾아보세요</b>
+        <div className="hero-stage" aria-label="당근 밴드 무대">
+          <div className="garland" aria-hidden="true">✦ · ✦ · ✦ · ✦ · ✦ · ✦</div>
+          <img src="/assets/carrot-band-stage.png" alt="기타, 드럼, 키보드로 합주하는 당근 밴드" />
+          <div className="stage-caption">
+            <span className="live-dot"/> WINTER SESSION
+            <b>나랑 맞는 밴드원을 찾아보세요</b>
+          </div>
         </div>
       </section>
 
