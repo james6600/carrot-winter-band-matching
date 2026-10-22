@@ -1,6 +1,7 @@
 import { currentParticipant } from "../../lib/auth";
 import { GENRES, PARTS } from "../../lib/constants";
 import { pool, q } from "../../lib/db";
+import ArtistPicker from "../components/ArtistPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -13,15 +14,17 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
   const me = await currentParticipant();
   let selectedParts: string[] = [];
   let selectedGenres: string[] = [];
+  let selectedArtists: string[] = [];
 
   if (me) {
     const profile = await pool.query(
-      `SELECT parts_json, genres_json FROM ${q("participants")} WHERE id=$1`,
+      `SELECT parts_json, genres_json, artists_json FROM ${q("participants")} WHERE id=$1`,
       [me.id],
     );
-    const row = profile.rows[0] as { parts_json?: unknown; genres_json?: unknown } | undefined;
+    const row = profile.rows[0] as { parts_json?: unknown; genres_json?: unknown; artists_json?: unknown } | undefined;
     selectedParts = Array.isArray(row?.parts_json) ? row.parts_json.map(String) : [];
     selectedGenres = Array.isArray(row?.genres_json) ? row.genres_json.map(String) : [];
+    selectedArtists = Array.isArray(row?.artists_json) ? row.artists_json.map(String) : [];
   }
 
   const error = params.error;
@@ -91,6 +94,11 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
                   </label>
                 ))}
               </div>
+            </section>
+
+            <section className="magic-card preference-card artist-preference-card">
+              <div className="step-title"><span>03</span><div><h2>좋아하는 아티스트</h2><p>좋아하는 순서대로 골라주세요. 같은 아티스트와 그 아티스트의 장르 메타데이터가 매칭에 반영됩니다.</p></div></div>
+              <ArtistPicker initial={selectedArtists}/>
             </section>
             <div className="save-bar"><div><span>✦</span><p><b>선택을 마쳤나요?</b><small>저장하면 전체 통계에서 내 취향도 함께 보여요.</small></p></div><button className="button primary" type="submit">취향 저장하기 <span>→</span></button></div>
           </form>
