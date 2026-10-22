@@ -1,2 +1,0 @@
-import { NextResponse } from "next/server"; import { cookies } from "next/headers"; import { tokenHash } from "../../../../lib/auth"; import { pool,q } from "../../../../lib/db";
-export async function POST(req:Request){const jar=await cookies();const t=jar.get("participant_session")?.value;if(t)await pool.query(`DELETE FROM ${q("participant_sessions")} WHERE token_hash=$1`,[tokenHash(t)]);const res=NextResponse.redirect(new URL("/onboarding",req.url),303);res.cookies.delete("participant_session");return res}

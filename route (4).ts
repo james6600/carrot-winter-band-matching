@@ -1,2 +1,0 @@
-import { NextResponse } from "next/server";import { cookies } from "next/headers";import { tokenHash } from "../../../../lib/auth";import { pool,q } from "../../../../lib/db";
-export async function POST(req:Request){const jar=await cookies();const t=jar.get("admin_session")?.value;if(t)await pool.query(`DELETE FROM ${q("admin_sessions")} WHERE token_hash=$1`,[tokenHash(t)]);const res=NextResponse.redirect(new URL("/admin",req.url),303);res.cookies.delete("admin_session");return res}
