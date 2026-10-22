@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { currentParticipant } from "../../../lib/auth";
 import { q, tx } from "../../../lib/db";
 import { PARTS, GENRES } from "../../../lib/constants";
-const allowedParts = new Set(PARTS.map(x => x[0]));
-const allowedGenres = new Set(GENRES.map(x => x[0]));
+const allowedParts = new Set<string>(PARTS.map((x: readonly [string, string]) => x[0]));
+const allowedGenres = new Set<string>(GENRES.map((x: readonly [string, string]) => x[0]));
 export async function POST(req: Request) {
   const me = await currentParticipant();
   if (!me) return NextResponse.redirect(new URL("/onboarding?error=session", req.url), 303);
   try {
     const f = await req.formData();
-    const parts = f.getAll("parts").map(String).filter(x => allowedParts.has(x as any));
-    const genres = f.getAll("genres").map(String).filter(x => allowedGenres.has(x as any));
+    const parts = f.getAll("parts").map(String).filter((x: string) => allowedParts.has(x));
+    const genres = f.getAll("genres").map(String).filter((x: string) => allowedGenres.has(x));
     await tx(async c => {
       await c.query(`DELETE FROM ${q("participant_parts")} WHERE participant_id=$1`, [me.id]);
       await c.query(`DELETE FROM ${q("participant_genres")} WHERE participant_id=$1`, [me.id]);

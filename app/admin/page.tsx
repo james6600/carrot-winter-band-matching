@@ -23,12 +23,12 @@ export default async function Admin({ searchParams }: { searchParams: Promise<Re
     </main>
   );
 
-  const rows = (await pool.query(`SELECT id,nickname,completed,created_at FROM ${q("participants")} WHERE merged_into IS NULL ORDER BY created_at DESC LIMIT 200`)).rows;
+  const rows = (await pool.query(`SELECT id,nickname,completed,created_at FROM ${q("participants")} WHERE merged_into IS NULL ORDER BY created_at DESC LIMIT 200`)).rows as Array<{ id: string; nickname: string; completed: boolean; created_at: string | Date }>;
   return (
     <main className="content-page admin-page">
       <div className="admin-top"><div><div className="section-label">SUPER ADMIN</div><h1>운영 대시보드</h1><p>참여자 현황과 운영 데이터를 확인하세요.</p></div><form action="/api/admin/logout" method="post"><button className="button ghost">로그아웃</button></form></div>
       <section className="magic-card admin-summary"><div><small>참여자</small><strong>{rows.length}</strong><span>명</span></div><p>현재 병합되지 않은 참여자 계정 기준입니다.</p></section>
-      <section className="magic-card table-card"><div className="card-head"><div><small>PARTICIPANTS</small><h2>참여자 목록</h2></div><span>🥕</span></div><div className="responsive-table"><table><thead><tr><th>닉네임</th><th>상태</th><th>가입일</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.nickname}</b></td><td><span className={`status-pill ${r.completed?"done":"draft"}`}>{r.completed?"완료":"작성중"}</span></td><td>{new Date(r.created_at).toLocaleDateString("ko-KR")}</td></tr>)}</tbody></table></div></section>
+      <section className="magic-card table-card"><div className="card-head"><div><small>PARTICIPANTS</small><h2>참여자 목록</h2></div><span>🥕</span></div><div className="responsive-table"><table><thead><tr><th>닉네임</th><th>상태</th><th>가입일</th></tr></thead><tbody>{rows.map((r: { id: string; nickname: string; completed: boolean; created_at: string | Date }) =><tr key={r.id}><td><b>{r.nickname}</b></td><td><span className={`status-pill ${r.completed?"done":"draft"}`}>{r.completed?"완료":"작성중"}</span></td><td>{new Date(r.created_at).toLocaleDateString("ko-KR")}</td></tr>)}</tbody></table></div></section>
     </main>
   );
 }

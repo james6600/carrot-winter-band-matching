@@ -19,8 +19,8 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
       pool.query(`SELECT part_key FROM ${q("participant_parts")} WHERE participant_id=$1`, [me.id]),
       pool.query(`SELECT genre_key FROM ${q("participant_genres")} WHERE participant_id=$1`, [me.id]),
     ]);
-    selectedParts = p.rows.map((x) => x.part_key);
-    selectedGenres = g.rows.map((x) => x.genre_key);
+    selectedParts = (p.rows as Array<{ part_key: string }>).map((x: { part_key: string }) => x.part_key);
+    selectedGenres = (g.rows as Array<{ genre_key: string }>).map((x: { genre_key: string }) => x.genre_key);
   }
 
   const error = params.error;
